@@ -4,17 +4,15 @@ import com.study.datajpa.dto.MemberDto;
 import com.study.datajpa.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import javax.persistence.Entity;
+import javax.persistence.QueryHint;
 import java.util.Collection;
 import java.util.List;
 
-public interface MemberRepository extends JpaRepository<Member, Long> {
+public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom {
 
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
 
@@ -64,4 +62,11 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
      * */
     @EntityGraph(attributePaths = {"team"})
     List<Member> findByUsername(@Param("username") String username);
+
+    /**
+     * JPA의 변경감지 기능은 스냅샷을 기본으로 해버린다. 이때 오로직 readonly만 할 경우 최적화 할 수 있는 로직
+     * (이런것 도입할때 진짜 이게 필요한지에 대하여 한번 쯤 생각해 볼 것)
+     * */
+    @QueryHints(value = @QueryHint(name = "org.hibernate.readOnly", value = "true"))
+    Member findReadOnlyByUsername(@Param("username") String username);
 }
